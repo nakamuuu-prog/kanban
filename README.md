@@ -2,7 +2,7 @@
 
 ![](https://c.media-amazon.com/images/I/81NFKx3OuRL._SY522_.jpg)
 
-## Chapter10 の タスク管理アプリ
+## Chapter10「タスク管理アプリ」用のリポジトリ
 
 ### 【実行コマンド】
 
