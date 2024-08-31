@@ -90,3 +90,29 @@ let TaskForm = (() => {
     };
 })();
 new TaskForm();
+// as constを使って読み取り専用のタプル型にする
+const TASK_STATUS = ["todo", "working", "done"];
+class TaskList {
+    templateEL;
+    element;
+    taskStatus;
+    constructor(templateId, _taskStatus) {
+        this.templateEL = document.querySelector(templateId);
+        const clone = this.templateEL.content.cloneNode(true);
+        this.element = clone.firstElementChild;
+        this.taskStatus = _taskStatus;
+        this.setup();
+    }
+    setup() {
+        this.element.querySelector("h2").textContent = `${this.taskStatus}`;
+        this.element.querySelector("ul").id = `${this.taskStatus}`;
+    }
+    mount(selector) {
+        const targetEL = document.querySelector(selector);
+        targetEL?.insertAdjacentElement("beforeend", this.element);
+    }
+}
+TASK_STATUS.forEach((status) => {
+    const list = new TaskList("#task-list-template", status);
+    list.mount("#container");
+});

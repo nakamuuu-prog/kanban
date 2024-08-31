@@ -66,3 +66,42 @@ class TaskForm {
 }
 
 new TaskForm();
+
+// as constを使って読み取り専用のタプル型にする
+const TASK_STATUS = ["todo", "working", "done"] as const;
+// インデックスアクセス型という、他の型から特定の部分を抽出するツールを使ってTuple型から各要素の型を抽出する
+// インデックスアクセス型を利用することで 型名[プロパティ名] の形式で、型の特定の部分にアクセスできるようになる
+type TaskStatus = (typeof TASK_STATUS)[number];
+
+class TaskList {
+  templateEL: HTMLTemplateElement;
+  element: HTMLDivElement;
+  private taskStatus: TaskStatus;
+
+  constructor(templateId: string, _taskStatus: TaskStatus) {
+    this.templateEL = document.querySelector(templateId)!;
+
+    const clone = this.templateEL.content.cloneNode(true) as DocumentFragment;
+
+    this.element = clone.firstElementChild as HTMLDivElement;
+
+    this.taskStatus = _taskStatus;
+
+    this.setup();
+  }
+
+  setup() {
+    this.element.querySelector("h2")!.textContent = `${this.taskStatus}`;
+    this.element.querySelector("ul")!.id = `${this.taskStatus}`;
+  }
+
+  mount(selector: string) {
+    const targetEL = document.querySelector(selector);
+    targetEL?.insertAdjacentElement("beforeend", this.element);
+  }
+}
+
+TASK_STATUS.forEach((status) => {
+  const list = new TaskList("#task-list-template", status);
+  list.mount("#container");
+});
