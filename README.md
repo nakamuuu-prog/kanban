@@ -1,4 +1,6 @@
-# AD 書籍「[現場で使える TypeScript 詳解実践ガイド](https://amzn.to/4dhLaho)」の学習用
+# 書籍「[現場で使える TypeScript 詳解実践ガイド](https://amzn.to/4dhLaho)(AD)」の学習用
+
+![](https://c.media-amazon.com/images/I/81NFKx3OuRL._SY522_.jpg)
 
 ## Chapter10 の タスク管理アプリ
 
@@ -12,5 +14,3 @@
 - npm install -D serve@14.2.1
 
 ---
-
-![](https://c.media-amazon.com/images/I/81NFKx3OuRL._SL1500_.jpg)
