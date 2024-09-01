@@ -65,7 +65,7 @@ let TaskForm = (() => {
         submitHandler(event) {
             event.preventDefault(); // ブラウザのデフォルトの動作をキャンセル
             const task = this.makeNewTask();
-            const item = new TaskItem("#task-item-template", task);
+            const item = new TaskItem(task);
             item.mount("#todo");
             this.clearInputs();
         }
@@ -91,13 +91,12 @@ let TaskForm = (() => {
     };
 })();
 new TaskForm();
-// as constを使って読み取り専用のタプル型にする
-const TASK_STATUS = ["todo", "working", "done"];
-class TaskList {
+// TaskListとTaskItem用の抽象クラスを作成して共通化する
+// ジェネリクス型をHTMLElementで制約することで、HTMLElementまたは、そのサブクラスの型のみを受け入れられるようにする
+class UIComponent {
     templateEl;
     element;
-    taskStatus;
-    constructor(templateId, _taskStatus) {
+    constructor(templateId) {
         // templateの内容を取り込む
         this.templateEl = document.querySelector(templateId);
         // templateのクローンを作る
@@ -112,50 +111,51 @@ class TaskList {
         // readonly content: DocumentFragment;
         const clone = this.templateEl.content.cloneNode(true);
         this.element = clone.firstElementChild;
-        this.taskStatus = _taskStatus;
-        this.setup();
-    }
-    setup() {
-        this.element.querySelector("h2").textContent = `${this.taskStatus}`;
-        this.element.querySelector("ul").id = `${this.taskStatus}`;
     }
     mount(selector) {
         const targetEl = document.querySelector(selector);
         targetEl?.insertAdjacentElement("beforeend", this.element);
     }
 }
+// as constを使って読み取り専用のタプル型にする
+const TASK_STATUS = ["todo", "working", "done"];
+class TaskList extends UIComponent {
+    taskStatus;
+    constructor(taskStatus) {
+        super("#task-list-template");
+        this.taskStatus = taskStatus;
+        this.setup();
+    }
+    setup() {
+        this.element.querySelector("h2").textContent = `${this.taskStatus}`;
+        this.element.querySelector("ul").id = `${this.taskStatus}`;
+    }
+}
 TASK_STATUS.forEach((status) => {
-    const list = new TaskList("#task-list-template", status);
+    const list = new TaskList(status);
     list.mount("#container");
 });
 let TaskItem = (() => {
+    let _classSuper = UIComponent;
     let _instanceExtraInitializers = [];
     let _clickHandler_decorators;
-    return class TaskItem {
+    return class TaskItem extends _classSuper {
         static {
-            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
             _clickHandler_decorators = [bound];
             __esDecorate(this, null, _clickHandler_decorators, { kind: "method", name: "clickHandler", static: false, private: false, access: { has: obj => "clickHandler" in obj, get: obj => obj.clickHandler }, metadata: _metadata }, null, _instanceExtraInitializers);
             if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
         }
-        templateEl = __runInitializers(this, _instanceExtraInitializers);
-        element;
-        task;
-        constructor(templateId, _task) {
-            this.templateEl = document.querySelector(templateId);
-            const clone = this.templateEl.content.cloneNode(true);
-            this.element = clone.firstElementChild;
+        task = __runInitializers(this, _instanceExtraInitializers);
+        constructor(_task) {
+            super("#task-item-template");
             this.task = _task;
             this.setup();
-            this.bindEvent();
+            this.bindEvents();
         }
         setup() {
             this.element.querySelector("h2").textContent = `${this.task.title}`;
             this.element.querySelector("p").textContent = `${this.task.description}`;
-        }
-        mount(selector) {
-            const targetEl = document.querySelector(selector);
-            targetEl?.insertAdjacentElement("beforeend", this.element);
         }
         clickHandler() {
             if (!this.element.parentElement)
@@ -174,7 +174,7 @@ let TaskItem = (() => {
             // 現在の要素がdoneの場合はリストから削除する
             this.element.remove();
         }
-        bindEvent() {
+        bindEvents() {
             this.element.addEventListener("click", this.clickHandler);
         }
     };

@@ -37,7 +37,7 @@ class TaskForm {
 
     const task = this.makeNewTask();
 
-    const item = new TaskItem("#task-item-template", task);
+    const item = new TaskItem(task);
     item.mount("#todo");
 
     this.clearInputs();
@@ -69,18 +69,13 @@ class TaskForm {
 
 new TaskForm();
 
-// as constを使って読み取り専用のタプル型にする
-const TASK_STATUS = ["todo", "working", "done"] as const;
-// インデックスアクセス型という、他の型から特定の部分を抽出するツールを使ってTuple型から各要素の型を抽出する
-// インデックスアクセス型を利用することで 型名[プロパティ名] の形式で、型の特定の部分にアクセスできるようになる
-type TaskStatus = (typeof TASK_STATUS)[number];
-
-class TaskList {
+// TaskListとTaskItem用の抽象クラスを作成して共通化する
+// ジェネリクス型をHTMLElementで制約することで、HTMLElementまたは、そのサブクラスの型のみを受け入れられるようにする
+abstract class UIComponent<T extends HTMLElement> {
   templateEl: HTMLTemplateElement;
-  element: HTMLDivElement;
-  private taskStatus: TaskStatus;
+  element: T;
 
-  constructor(templateId: string, _taskStatus: TaskStatus) {
+  constructor(templateId: string) {
     // templateの内容を取り込む
     this.templateEl = document.querySelector(templateId)!;
     // templateのクローンを作る
@@ -94,10 +89,27 @@ class TaskList {
     //  */
     // readonly content: DocumentFragment;
     const clone = this.templateEl.content.cloneNode(true) as DocumentFragment;
+    this.element = clone.firstElementChild as T;
+  }
 
-    this.element = clone.firstElementChild as HTMLDivElement;
+  mount(selector: string) {
+    const targetEl = document.querySelector(selector);
+    targetEl?.insertAdjacentElement("beforeend", this.element);
+  }
 
-    this.taskStatus = _taskStatus;
+  // setupはTaslListとTaskItemでセットアップする要素が異なるので、抽象メソッドとして実装しておいて、オーバーライドして使う
+  abstract setup(): void;
+}
+
+// as constを使って読み取り専用のタプル型にする
+const TASK_STATUS = ["todo", "working", "done"] as const;
+// インデックスアクセス型という、他の型から特定の部分を抽出するツールを使ってTuple型から各要素の型を抽出する
+// インデックスアクセス型を利用することで 型名[プロパティ名] の形式で、型の特定の部分にアクセスできるようになる
+type TaskStatus = (typeof TASK_STATUS)[number];
+
+class TaskList extends UIComponent<HTMLDivElement> {
+  constructor(private taskStatus: TaskStatus) {
+    super("#task-list-template");
 
     this.setup();
   }
@@ -106,42 +118,34 @@ class TaskList {
     this.element.querySelector("h2")!.textContent = `${this.taskStatus}`;
     this.element.querySelector("ul")!.id = `${this.taskStatus}`;
   }
-
-  mount(selector: string) {
-    const targetEl = document.querySelector(selector);
-    targetEl?.insertAdjacentElement("beforeend", this.element);
-  }
 }
 
 TASK_STATUS.forEach((status) => {
-  const list = new TaskList("#task-list-template", status);
+  const list = new TaskList(status);
   list.mount("#container");
 });
 
-class TaskItem {
-  templateEl: HTMLTemplateElement;
-  element: HTMLLIElement;
+// クリック用のインターフェイスを導入することで、クリック可能な要素と、その振る舞いを規定する明確な契約を設定できる
+interface ClickableElement {
+  element: HTMLElement;
+  clickHandler(event: MouseEvent): void;
+  bindEvents(): void;
+}
+
+class TaskItem extends UIComponent<HTMLLIElement> implements ClickableElement {
   task: Task;
 
-  constructor(templateId: string, _task: Task) {
-    this.templateEl = document.querySelector(templateId)!;
-    const clone = this.templateEl.content.cloneNode(true) as DocumentFragment;
-    this.element = clone.firstElementChild as HTMLLIElement;
+  constructor(_task: Task) {
+    super("#task-item-template");
+
     this.task = _task;
-
     this.setup();
-
-    this.bindEvent();
+    this.bindEvents();
   }
 
   setup() {
     this.element.querySelector("h2")!.textContent = `${this.task.title}`;
     this.element.querySelector("p")!.textContent = `${this.task.description}`;
-  }
-
-  mount(selector: string) {
-    const targetEl = document.querySelector(selector);
-    targetEl?.insertAdjacentElement("beforeend", this.element);
   }
 
   @bound
@@ -169,7 +173,7 @@ class TaskItem {
     this.element.remove();
   }
 
-  bindEvent() {
+  bindEvents() {
     this.element.addEventListener("click", this.clickHandler);
   }
 }
