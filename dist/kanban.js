@@ -97,7 +97,18 @@ class TaskList {
     element;
     taskStatus;
     constructor(templateId, _taskStatus) {
+        // templateの内容を取り込む
         this.templateEL = document.querySelector(templateId);
+        // templateのクローンを作る
+        // cloneNodeにtrueを渡すことでtemplate要素のすべての子要素および、その下層の要素も含めた完全なクローンができる
+        // template要素のcontentプロパティはDocumentFragment型なので、アサーションを使用してcloneをDocumentFragment型として扱う
+        // MEMO:(参照先)
+        // /**
+        //  * Returns the template contents (a DocumentFragment).
+        //  *
+        //  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/HTMLTemplateElement/content)
+        //  */
+        // readonly content: DocumentFragment;
         const clone = this.templateEL.content.cloneNode(true);
         this.element = clone.firstElementChild;
         this.taskStatus = _taskStatus;
