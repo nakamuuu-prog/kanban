@@ -7,28 +7,28 @@ interface Task {
 
 class TaskForm {
   element: HTMLFormElement;
-  titleInputEL: HTMLInputElement;
-  descriptionInputEL: HTMLTextAreaElement;
+  titleInputEl: HTMLInputElement;
+  descriptionInputEl: HTMLTextAreaElement;
 
   constructor() {
     this.element = document.querySelector("#task-form")!;
 
-    this.titleInputEL = document.querySelector("#form-title")!;
-    this.descriptionInputEL = document.querySelector("#form-description")!;
+    this.titleInputEl = document.querySelector("#form-title")!;
+    this.descriptionInputEl = document.querySelector("#form-description")!;
 
     this.bindEvents();
   }
 
   private makeNewTask(): Task {
     return {
-      title: this.titleInputEL.value,
-      description: this.descriptionInputEL.value,
+      title: this.titleInputEl.value,
+      description: this.descriptionInputEl.value,
     };
   }
 
   private clearInputs(): void {
-    this.titleInputEL.value = "";
-    this.descriptionInputEL.value = "";
+    this.titleInputEl.value = "";
+    this.descriptionInputEl.value = "";
   }
 
   @bound
@@ -51,7 +51,7 @@ class TaskForm {
     // submitHandler @ kanban.js:14Understand this error
 
     // ここでのthisはTaskFormのインスタンスではなく、イベントを発生させたform要素を指す
-    // そのため、forms要素のtitleInputELがundefinedと評価されてしまう
+    // そのため、forms要素のtitleInputElがundefinedと評価されてしまう
     this.element.addEventListener("submit", this.submitHandler);
 
     // これを回避するためには以下のようにbindをつかってインスタンスを束縛する必要がある
@@ -61,8 +61,8 @@ class TaskForm {
     // MEMO: ちなみに引数に処理を直接渡すとちゃんと動く
     // this.element.addEventListener("submit", (event: Event) => {
     //   event.preventDefault();
-    //   console.log(this.titleInputEL.value);
-    //   console.log(this.descriptionInputEL.value);
+    //   console.log(this.titleInputEl.value);
+    //   console.log(this.descriptionInputEl.value);
     // });
   }
 }
@@ -76,13 +76,13 @@ const TASK_STATUS = ["todo", "working", "done"] as const;
 type TaskStatus = (typeof TASK_STATUS)[number];
 
 class TaskList {
-  templateEL: HTMLTemplateElement;
+  templateEl: HTMLTemplateElement;
   element: HTMLDivElement;
   private taskStatus: TaskStatus;
 
   constructor(templateId: string, _taskStatus: TaskStatus) {
     // templateの内容を取り込む
-    this.templateEL = document.querySelector(templateId)!;
+    this.templateEl = document.querySelector(templateId)!;
     // templateのクローンを作る
     // cloneNodeにtrueを渡すことでtemplate要素のすべての子要素および、その下層の要素も含めた完全なクローンができる
     // template要素のcontentプロパティはDocumentFragment型なので、アサーションを使用してcloneをDocumentFragment型として扱う
@@ -93,7 +93,7 @@ class TaskList {
     //  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/HTMLTemplateElement/content)
     //  */
     // readonly content: DocumentFragment;
-    const clone = this.templateEL.content.cloneNode(true) as DocumentFragment;
+    const clone = this.templateEl.content.cloneNode(true) as DocumentFragment;
 
     this.element = clone.firstElementChild as HTMLDivElement;
 
@@ -108,8 +108,8 @@ class TaskList {
   }
 
   mount(selector: string) {
-    const targetEL = document.querySelector(selector);
-    targetEL?.insertAdjacentElement("beforeend", this.element);
+    const targetEl = document.querySelector(selector);
+    targetEl?.insertAdjacentElement("beforeend", this.element);
   }
 }
 
@@ -140,8 +140,8 @@ class TaskItem {
   }
 
   mount(selector: string) {
-    const targetEL = document.querySelector(selector);
-    targetEL?.insertAdjacentElement("beforeend", this.element);
+    const targetEl = document.querySelector(selector);
+    targetEl?.insertAdjacentElement("beforeend", this.element);
   }
 
   @bound

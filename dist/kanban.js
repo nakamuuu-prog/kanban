@@ -44,23 +44,23 @@ let TaskForm = (() => {
             if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
         }
         element = __runInitializers(this, _instanceExtraInitializers);
-        titleInputEL;
-        descriptionInputEL;
+        titleInputEl;
+        descriptionInputEl;
         constructor() {
             this.element = document.querySelector("#task-form");
-            this.titleInputEL = document.querySelector("#form-title");
-            this.descriptionInputEL = document.querySelector("#form-description");
+            this.titleInputEl = document.querySelector("#form-title");
+            this.descriptionInputEl = document.querySelector("#form-description");
             this.bindEvents();
         }
         makeNewTask() {
             return {
-                title: this.titleInputEL.value,
-                description: this.descriptionInputEL.value,
+                title: this.titleInputEl.value,
+                description: this.descriptionInputEl.value,
             };
         }
         clearInputs() {
-            this.titleInputEL.value = "";
-            this.descriptionInputEL.value = "";
+            this.titleInputEl.value = "";
+            this.descriptionInputEl.value = "";
         }
         submitHandler(event) {
             event.preventDefault(); // ブラウザのデフォルトの動作をキャンセル
@@ -76,7 +76,7 @@ let TaskForm = (() => {
             //     at HTMLFormElement.submitHandler (kanban.js:14:39)
             // submitHandler @ kanban.js:14Understand this error
             // ここでのthisはTaskFormのインスタンスではなく、イベントを発生させたform要素を指す
-            // そのため、forms要素のtitleInputELがundefinedと評価されてしまう
+            // そのため、forms要素のtitleInputElがundefinedと評価されてしまう
             this.element.addEventListener("submit", this.submitHandler);
             // これを回避するためには以下のようにbindをつかってインスタンスを束縛する必要がある
             // 今回はdecoratorを学習したので、bindThis.tsにdecoratorを使って実装する
@@ -84,8 +84,8 @@ let TaskForm = (() => {
             // MEMO: ちなみに引数に処理を直接渡すとちゃんと動く
             // this.element.addEventListener("submit", (event: Event) => {
             //   event.preventDefault();
-            //   console.log(this.titleInputEL.value);
-            //   console.log(this.descriptionInputEL.value);
+            //   console.log(this.titleInputEl.value);
+            //   console.log(this.descriptionInputEl.value);
             // });
         }
     };
@@ -94,12 +94,12 @@ new TaskForm();
 // as constを使って読み取り専用のタプル型にする
 const TASK_STATUS = ["todo", "working", "done"];
 class TaskList {
-    templateEL;
+    templateEl;
     element;
     taskStatus;
     constructor(templateId, _taskStatus) {
         // templateの内容を取り込む
-        this.templateEL = document.querySelector(templateId);
+        this.templateEl = document.querySelector(templateId);
         // templateのクローンを作る
         // cloneNodeにtrueを渡すことでtemplate要素のすべての子要素および、その下層の要素も含めた完全なクローンができる
         // template要素のcontentプロパティはDocumentFragment型なので、アサーションを使用してcloneをDocumentFragment型として扱う
@@ -110,7 +110,7 @@ class TaskList {
         //  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/HTMLTemplateElement/content)
         //  */
         // readonly content: DocumentFragment;
-        const clone = this.templateEL.content.cloneNode(true);
+        const clone = this.templateEl.content.cloneNode(true);
         this.element = clone.firstElementChild;
         this.taskStatus = _taskStatus;
         this.setup();
@@ -120,8 +120,8 @@ class TaskList {
         this.element.querySelector("ul").id = `${this.taskStatus}`;
     }
     mount(selector) {
-        const targetEL = document.querySelector(selector);
-        targetEL?.insertAdjacentElement("beforeend", this.element);
+        const targetEl = document.querySelector(selector);
+        targetEl?.insertAdjacentElement("beforeend", this.element);
     }
 }
 TASK_STATUS.forEach((status) => {
@@ -154,8 +154,8 @@ let TaskItem = (() => {
             this.element.querySelector("p").textContent = `${this.task.description}`;
         }
         mount(selector) {
-            const targetEL = document.querySelector(selector);
-            targetEL?.insertAdjacentElement("beforeend", this.element);
+            const targetEl = document.querySelector(selector);
+            targetEl?.insertAdjacentElement("beforeend", this.element);
         }
         clickHandler() {
             if (!this.element.parentElement)
