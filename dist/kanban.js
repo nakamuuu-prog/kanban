@@ -65,7 +65,8 @@ let TaskForm = (() => {
         submitHandler(event) {
             event.preventDefault(); // ブラウザのデフォルトの動作をキャンセル
             const task = this.makeNewTask();
-            console.log(task);
+            const item = new TaskItem("#task-item-template", task);
+            item.mount("#todo");
             this.clearInputs();
         }
         bindEvents() {
@@ -127,3 +128,54 @@ TASK_STATUS.forEach((status) => {
     const list = new TaskList("#task-list-template", status);
     list.mount("#container");
 });
+let TaskItem = (() => {
+    let _instanceExtraInitializers = [];
+    let _clickHandler_decorators;
+    return class TaskItem {
+        static {
+            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+            _clickHandler_decorators = [bound];
+            __esDecorate(this, null, _clickHandler_decorators, { kind: "method", name: "clickHandler", static: false, private: false, access: { has: obj => "clickHandler" in obj, get: obj => obj.clickHandler }, metadata: _metadata }, null, _instanceExtraInitializers);
+            if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+        }
+        templateEl = __runInitializers(this, _instanceExtraInitializers);
+        element;
+        task;
+        constructor(templateId, _task) {
+            this.templateEl = document.querySelector(templateId);
+            const clone = this.templateEl.content.cloneNode(true);
+            this.element = clone.firstElementChild;
+            this.task = _task;
+            this.setup();
+            this.bindEvent();
+        }
+        setup() {
+            this.element.querySelector("h2").textContent = `${this.task.title}`;
+            this.element.querySelector("p").textContent = `${this.task.description}`;
+        }
+        mount(selector) {
+            const targetEL = document.querySelector(selector);
+            targetEL?.insertAdjacentElement("beforeend", this.element);
+        }
+        clickHandler() {
+            if (!this.element.parentElement)
+                return;
+            const currentListId = this.element.parentElement.id;
+            const taskStatusIdx = TASK_STATUS.indexOf(currentListId);
+            if (taskStatusIdx === -1) {
+                throw new Error("タスクステータスが不正です。");
+            }
+            const nextlistId = TASK_STATUS[taskStatusIdx + 1];
+            if (nextlistId) {
+                const nextListEl = document.getElementById(nextlistId);
+                nextListEl.appendChild(this.element);
+                return;
+            }
+            // 現在の要素がdoneの場合はリストから削除する
+            this.element.remove();
+        }
+        bindEvent() {
+            this.element.addEventListener("click", this.clickHandler);
+        }
+    };
+})();

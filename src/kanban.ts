@@ -36,7 +36,9 @@ class TaskForm {
     event.preventDefault(); // ブラウザのデフォルトの動作をキャンセル
 
     const task = this.makeNewTask();
-    console.log(task);
+
+    const item = new TaskItem("#task-item-template", task);
+    item.mount("#todo");
 
     this.clearInputs();
   }
@@ -115,3 +117,59 @@ TASK_STATUS.forEach((status) => {
   const list = new TaskList("#task-list-template", status);
   list.mount("#container");
 });
+
+class TaskItem {
+  templateEl: HTMLTemplateElement;
+  element: HTMLLIElement;
+  task: Task;
+
+  constructor(templateId: string, _task: Task) {
+    this.templateEl = document.querySelector(templateId)!;
+    const clone = this.templateEl.content.cloneNode(true) as DocumentFragment;
+    this.element = clone.firstElementChild as HTMLLIElement;
+    this.task = _task;
+
+    this.setup();
+
+    this.bindEvent();
+  }
+
+  setup() {
+    this.element.querySelector("h2")!.textContent = `${this.task.title}`;
+    this.element.querySelector("p")!.textContent = `${this.task.description}`;
+  }
+
+  mount(selector: string) {
+    const targetEL = document.querySelector(selector);
+    targetEL?.insertAdjacentElement("beforeend", this.element);
+  }
+
+  @bound
+  clickHandler() {
+    if (!this.element.parentElement) return;
+
+    const currentListId = this.element.parentElement.id as TaskStatus;
+    const taskStatusIdx = TASK_STATUS.indexOf(currentListId);
+
+    if (taskStatusIdx === -1) {
+      throw new Error("タスクステータスが不正です。");
+    }
+
+    const nextlistId = TASK_STATUS[taskStatusIdx + 1];
+
+    if (nextlistId) {
+      const nextListEl = document.getElementById(
+        nextlistId
+      ) as HTMLUListElement;
+      nextListEl.appendChild(this.element);
+      return;
+    }
+
+    // 現在の要素がdoneの場合はリストから削除する
+    this.element.remove();
+  }
+
+  bindEvent() {
+    this.element.addEventListener("click", this.clickHandler);
+  }
+}
